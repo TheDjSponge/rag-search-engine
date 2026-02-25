@@ -13,7 +13,7 @@ wheels/
 .env
 
 # Data directory 
-/data/
+/data/*.json
 
 # uv specifics
 uv.lock
