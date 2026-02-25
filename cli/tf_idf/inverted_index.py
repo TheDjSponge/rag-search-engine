@@ -30,15 +30,32 @@ class InvertedIndex:
         tokenized_term = prepare_and_tokenize(term)
         if len(tokenized_term) != 1:
             raise ValueError("term should contain a single token")
-        return self.term_frequencies[doc_id][tokenized_term[0]]
+        token = tokenized_term[0]
+        return self.term_frequencies[doc_id][token]
 
     def get_idf(self, term: str) -> float:
-        tokenized_term = prepare_and_tokenize(term)[0]
+        tokenized_term = prepare_and_tokenize(term)
+        if len(tokenized_term) != 1:
+            raise ValueError("term should contain a single token")
+        token = tokenized_term[0]
 
         total_doc_count = len(self.docmap)
-        term_match_doc_count = len(self.get_document(tokenized_term))
+        term_match_doc_count = len(self.get_document(token))
 
         return math.log((total_doc_count + 1) / (term_match_doc_count + 1))
+
+    def get_bm25_idf(self, term: str) -> float:
+        tokenized_term = prepare_and_tokenize(term)
+        if len(tokenized_term) != 1:
+            raise ValueError("term should contain a single token")
+        token = tokenized_term[0]
+
+        total_docs = len(self.docmap)
+        document_frequency = len(self.get_document(token))
+        print(document_frequency)
+        return math.log(
+            (total_docs - document_frequency + 0.5) / (document_frequency + 0.5) + 1
+        )
 
     def get_document(self, term: str) -> list[int]:
         return sorted(self.index.get(term.lower(), []))
