@@ -4,10 +4,10 @@ import argparse
 from typing import List, Dict
 from utils.files import load_movies
 from utils.search import (
-    find_matching_movies,
     print_matched_movies,
     find_matching_movies_with_index,
 )
+from utils.constants import BM25_K1, BM25_B
 from tf_idf.inverted_index import InvertedIndex
 
 
@@ -46,6 +46,22 @@ def main() -> None:
     bm25_idf_parser.add_argument(
         "term", type=str, help="Term to get BM25 IDF score for"
     )
+
+    bm25_tf_parser = subparsers.add_parser(
+        "bm25tf", help="Get BM25 TF score for a given document ID and term"
+    )
+    bm25_tf_parser.add_argument("doc_id", type=int, help="Document ID")
+    bm25_tf_parser.add_argument("term", type=str, help="Term to get BM25 TF score for")
+    bm25_tf_parser.add_argument(
+        "k1", type=float, nargs="?", default=BM25_K1, help="Tunable BM25 K1 parameter"
+    )
+    bm25_tf_parser.add_argument(
+        "b", type=float, nargs="?", default=BM25_B, help="Tunable BM25 b parameter"
+    )
+    bm25search_parser = subparsers.add_parser(
+        "bm25search", help="Search movies using full BM25 scoring"
+    )
+    bm25search_parser.add_argument("query", type=str, help="Search query")
 
     args = parser.parse_args()
 
@@ -88,9 +104,30 @@ def main() -> None:
         case "bm25idf":
             bm25_idf = bm25_idf_command(args.term)
             print(f"BM25 IDF score of '{args.term}': {bm25_idf:.2f}")
-
+        case "bm25tf":
+            bm25_tf = bm25_tf_command(args.doc_id, args.term, args.k1, args.b)
+            print(
+                f"BM25 TF score of '{args.term}' in document '{args.doc_id}': {bm25_tf:.2f}"
+            )
+        case "bm25search":
+            matches = bm25search_command(args.query)
+            print_bm25_matches(matches, movies["movies"])
         case _:
             parser.print_help()
+
+
+def bm25search_command(query: str) -> List[Dict]:
+    inverted_index = InvertedIndex()
+    inverted_index.load()
+    matches = inverted_index.bm25_search(query)
+    return matches
+
+
+def print_bm25_matches(bm25_matches: List[Dict], movies: List[Dict]):
+    for match in bm25_matches:
+        print(
+            f"({match["doc_id"]}) {movies[match["doc_id"]-1]["title"]} - Score: {match["bm25_score"]:.2f}"
+        )
 
 
 def bm25_idf_command(term: str) -> float:
@@ -98,6 +135,15 @@ def bm25_idf_command(term: str) -> float:
     inverted_index.load()
     bm25_idf = inverted_index.get_bm25_idf(term)
     return bm25_idf
+
+
+def bm25_tf_command(doc_id: int, term: str, k1: float, b: float):
+    inverted_index = InvertedIndex()
+    inverted_index.load()
+
+    bm25_tf = inverted_index.get_bm25_tf(doc_id, term, k1, b)
+
+    return bm25_tf
 
 
 if __name__ == "__main__":

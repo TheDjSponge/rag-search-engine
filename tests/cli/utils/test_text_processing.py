@@ -9,10 +9,10 @@ from cli.utils.text_processing import (
 def test_remove_stopwords():
     stopwords_list = ["a", "an"]
 
-    query = "a cat ate an apple"
+    query = ["a", "cat", "ate", "an", "apple"]
     filtered_query = remove_stopwords(query, stopwords_list)
 
-    expected = "cat ate apple"
+    expected = ["cat", "ate", "apple"]
 
     assert filtered_query == expected
 

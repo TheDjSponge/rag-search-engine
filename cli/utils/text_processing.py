@@ -4,12 +4,12 @@ from typing import List
 from nltk.stem import PorterStemmer
 
 
-def remove_stopwords(text: str, stopwords: List[str]):
-    tokenized_text = tokenize(text)
-    for stopword in stopwords:
-        if stopword in tokenized_text:
-            tokenized_text.remove(stopword)
-    return " ".join(tokenized_text)
+def remove_stopwords(tokens: List[str], stopwords: List[str]):
+    filtered_tokens = []
+    for token in tokens:
+        if not (token in stopwords):
+            filtered_tokens.append(token)
+    return filtered_tokens
 
 
 def stem_tokens(tokens: List[str]) -> List[str]:
@@ -30,7 +30,8 @@ def tokenize(to_tokenize: str) -> List[str]:
 
 def prepare_and_tokenize(text: str) -> List[str]:
     stopwords_list = load_stopwords("./data/stopwords.txt")
-    cleaned_text = remove_stopwords(text, stopwords_list)
-    tokenized_text = tokenize(format_string(cleaned_text))
-    stemmed_tokens = stem_tokens(tokenized_text)
+    formatted_text = format_string(text)
+    tokenized_text = tokenize(formatted_text)
+    cleaned_text = remove_stopwords(tokenized_text, stopwords_list)
+    stemmed_tokens = stem_tokens(cleaned_text)
     return stemmed_tokens
