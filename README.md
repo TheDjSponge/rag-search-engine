@@ -93,3 +93,51 @@ uv run cli/keyword_search_cli.py bm25tf 1 anbuselvan
 
 uv run cli/keyword_search_cli.py bm25search "love story"
 ```
+
+## Chapter 4: Semantic search
+
+In this chapter, the goal is to produce text embeddings (represent documents in a fixed dimension vector space) and 
+use the distance in that space to compute a similarity metric.
+
+To compute similarity between two embeddings (vectors), we generally use cosine similarity:
+$$s = \frac{A \cdot B}{\lVert A \rVert \lVert B \rVert}$$
+
+The reason behind cosine similarity usage as a distance metric is also because it's the metric used to commonly train 
+embedding models. As we can see on the [model's page](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2#fine-tuning).
+Note that it's also important to always compare embeddings from similar models since different ones wouldn't rely on the 
+same embedding spaces.
+
+A relevant model choice can be made by inspecting the following leaderboard on huggingface
+https://huggingface.co/spaces/mteb/leaderboard
+
+Advice from coursework:
+```
+General Purpose Models
+
+    Use case: Broad semantic understanding across domains
+    Examples: all-MiniLM-L6-v2, all-mpnet-base-v2
+    Best for: Movie search, general document retrieval
+
+Domain-Specific Models
+
+    Use case: Specialized knowledge (medical, legal, scientific)
+    Examples: allenai-specter, microsoft/BiomedNLP-PubMedBERT
+    Best for: Technical documentation, research papers
+
+Multilingual Models
+
+    Use case: Data in multiple languages in the same search system
+    Examples: paraphrase-multilingual-MiniLM-L12-v2
+    Best for: International movie databases
+```
+
+The core idea that we implement in this chapter is that we can leverage such embedding models to generate
+embeddings for each document (movie data) and store them, effectively producing a vector database.
+Then, whenever we we want to perform a search on that database, we can simple compute cosine similarity
+(or the model's similarity metrics, in general) to find the maximum scores.
+
+Recommended production vector databases options mentionned in this course are the following:
+- PGVector: Open-source vector similarity search for PostgreSQL
+- sqlite-vec: Open-source vector similarity search for SQLite
+- LanceDB: Local-first, simple setup, small–medium scale
+- Weaviate: Full-featured, GraphQL API, complex schema
