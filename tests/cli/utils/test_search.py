@@ -1,22 +1,34 @@
-from typing import List, Dict
+from cli.tf_idf.inverted_index import InvertedIndex
+from cli.utils.models import MovieEntry
 from cli.utils.search import (
-    has_token_intersection,
     find_matching_movies,
     find_matching_movies_with_index,
+    has_token_intersection,
 )
-from cli.tf_idf.inverted_index import InvertedIndex
 
 
-def get_sample_movies() -> List[Dict]:
+def get_sample_movies() -> list[MovieEntry]:
     return [
-        {"id": 1, "title": "Cats, cats and dogs", "description": "rule the earth"},
-        {"id": 2, "title": "flat earth confirmed", "description": "in your dreams."},
-        {"id": 3, "title": "bob the builder", "description": "what a dream guy"},
+        {
+            "id": 1,
+            "title": "Cats, cats and dogs",
+            "description": "rule the earth",
+        },
+        {
+            "id": 2,
+            "title": "flat earth confirmed",
+            "description": "in your dreams.",
+        },
+        {
+            "id": 3,
+            "title": "bob the builder",
+            "description": "what a dream guy",
+        },
     ]
 
 
-def test_token_intersection():
-    
+def test_token_intersection() -> None:
+
     set1 = ["yes", "no"]
     set2 = ["no", "maybe"]
     set3 = ["lol"]
@@ -24,7 +36,7 @@ def test_token_intersection():
     assert not has_token_intersection(set1, set3)
 
 
-def test_find_matching_movies():
+def test_find_matching_movies() -> None:
     movies = get_sample_movies()
 
     query1 = "cats"
@@ -34,11 +46,11 @@ def test_find_matching_movies():
 
     query2 = "nuclear"
     matches2 = find_matching_movies(movies, query2)
-    expected2 = []
+    expected2: list[str] = []
     assert matches2 == expected2
 
 
-def test_find_matching_movies_with_index():
+def test_find_matching_movies_with_index() -> None:
     movies = get_sample_movies()
     inverted_index = InvertedIndex()
     inverted_index.build(movies)
@@ -50,7 +62,7 @@ def test_find_matching_movies_with_index():
 
     query2 = "nuclear"
     matches2 = find_matching_movies_with_index(query2, movies, inverted_index)
-    expected2 = []
+    expected2: list[str] = []
     assert matches2 == expected2
 
     ## in comparison to the base matching, here words also match on descriptions

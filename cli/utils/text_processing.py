@@ -1,18 +1,19 @@
 import string
-from .files import load_stopwords
-from typing import List
+
 from nltk.stem import PorterStemmer
 
+from .files import load_stopwords
 
-def remove_stopwords(tokens: List[str], stopwords: List[str]):
+
+def remove_stopwords(tokens: list[str], stopwords: list[str]) -> list[str]:
     filtered_tokens = []
     for token in tokens:
-        if not (token in stopwords):
+        if token not in stopwords:
             filtered_tokens.append(token)
     return filtered_tokens
 
 
-def stem_tokens(tokens: List[str]) -> List[str]:
+def stem_tokens(tokens: list[str]) -> list[str]:
     stemmer = PorterStemmer()
     return [stemmer.stem(token) for token in tokens]
 
@@ -24,11 +25,11 @@ def format_string(to_format: str) -> str:
     return translated_string
 
 
-def tokenize(to_tokenize: str) -> List[str]:
+def tokenize(to_tokenize: str) -> list[str]:
     return to_tokenize.split()
 
 
-def prepare_and_tokenize(text: str) -> List[str]:
+def prepare_and_tokenize(text: str) -> list[str]:
     stopwords_list = load_stopwords("./data/stopwords.txt")
     formatted_text = format_string(text)
     tokenized_text = tokenize(formatted_text)

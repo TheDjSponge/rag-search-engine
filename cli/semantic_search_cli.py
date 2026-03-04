@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 
 import argparse
-from cli.semantic_search.semantic_search import SemanticSearch
+
 from cli.semantic_search.semantic_search import (
+    SemanticSearch,
+    embed_query_text,
     embed_text,
     verify_embeddings,
-    embed_query_text,
 )
 from cli.utils.files import load_movies
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    subparsers = parser.add_subparsers(
+        dest="command", help="Available commands"
+    )
 
     _ = subparsers.add_parser("verify")
 
@@ -22,7 +25,8 @@ def main():
     embed_parser.add_argument("text", type=str, help="Text to embed")
 
     _ = subparsers.add_parser(
-        "verify_embeddings", help="Builds or loads embeddings from the movies dataset"
+        "verify_embeddings",
+        help="Builds or loads embeddings from the movies dataset",
     )
 
     embed_query_parser = subparsers.add_parser(
@@ -31,16 +35,20 @@ def main():
     embed_query_parser.add_argument("query", type=str, help="Query to embed")
 
     search_parser = subparsers.add_parser(
-        "search", help="Performs semantic search to find movies related to query"
+        "search",
+        help="Performs semantic search to find movies related to query",
     )
     search_parser.add_argument("query", type=str, help="Query to embed")
     search_parser.add_argument(
-        "--limit", nargs="?", default=5, type=int, help="Top k suggestions to show"
+        "--limit",
+        nargs="?",
+        default=5,
+        type=int,
+        help="Top k suggestions to show",
     )
 
     args = parser.parse_args()
     match args.command:
-
         case "verify":
             semantic_search = SemanticSearch()
             semantic_search.verify_model()
@@ -57,7 +65,7 @@ def main():
             matches = semantic_search.search(args.query, args.limit)
             for num, match in enumerate(matches):
                 print(
-                    f"{num+1}. {match["title"]} (score: {match["score"]:.4f})\n\t{match["description"][:100]} ..."
+                    f"{num + 1}. {match['title']} (score: {match['score']:.4f})\n\t{match['description'][:100]} ..."
                 )
 
         case _:

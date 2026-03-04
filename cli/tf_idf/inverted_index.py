@@ -1,35 +1,40 @@
-import os
 import math
+import os
 import pickle
-from typing import List, Dict
 from collections import Counter
+
+from cli.utils.constants import BM25_B, BM25_K1, CACHE_DIR, RETRIEVAL_LIMIT
+from cli.utils.models import BM25Match, MovieEntry
 from cli.utils.text_processing import prepare_and_tokenize
-from cli.utils.constants import CACHE_DIR, BM25_K1, BM25_B, RETRIEVAL_LIMIT
 
 
 class InvertedIndex:
     def __init__(self) -> None:
         # Index is the mapping between token ID -> documents. Structured as "hello" : [0,10,20]
         # Where number are supposed to be document IDs
-        self.index = {}
+        self.index: dict[str, list[int]] = {}
         self.index_path = os.path.join(CACHE_DIR, "index.pkl")
 
         # Docmaps is the relation between document IDs (0,10,20) to the full document object {title + description}
-        self.docmap = {}
+        self.docmap: dict[int, str] = {}
         self.docmap_path = os.path.join(CACHE_DIR, "docmap.pkl")
 
         # Term frequency holds for each document ID a counter of the words present in it.
-        self.term_frequencies = {}
-        self.term_frequencies_path = os.path.join(CACHE_DIR, "term_frequencies.pkl")
+        self.term_frequencies: dict[int, dict[str, int]] = {}
+        self.term_frequencies_path = os.path.join(
+            CACHE_DIR, "term_frequencies.pkl"
+        )
 
         # Stores length of each doc
-        self.doc_lengths = {}
+        self.doc_lengths: dict[int, int] = {}
         self.doc_lengths_path = os.path.join(CACHE_DIR, "doc_lengths.pkl")
 
-    def build(self, movies: List[Dict]) -> None:
-        print("~ Building inverse index, document map and counting term frequencies ~")
+    def build(self, movies: list[MovieEntry]) -> None:
+        print(
+            "~ Building inverse index, document map and counting term frequencies ~"
+        )
         for movie in movies:
-            movie_text = f"{movie["title"]} {movie["description"]}"
+            movie_text = f"{movie['title']} {movie['description']}"
             movie_id = movie["id"]
             self.__add_document(movie_id, movie_text)
             self.docmap[movie_id] = movie_text
@@ -61,32 +66,35 @@ class InvertedIndex:
         total_docs = len(self.docmap)
         document_frequency = len(self.index[token])
         return math.log(
-            (total_docs - document_frequency + 0.5) / (document_frequency + 0.5) + 1
+            (total_docs - document_frequency + 0.5) / (document_frequency + 0.5)
+            + 1
         )
 
     def get_bm25_tf(
         self, doc_id: int, term: str, k1: float = BM25_K1, b: float = BM25_B
-    ):
+    ) -> float:
         avg_doc_length = self.__get_avg_doc_length()
         doc_length = self.doc_lengths.get(doc_id, 0)
         if avg_doc_length > 0:
             length_norm = 1 - b + b * (doc_length / avg_doc_length)
         else:
-            length_norm = 1
+            length_norm = 1.0
 
         tf = self.get_tf(doc_id, term)
         bm25_tf = (tf * (k1 + 1)) / (tf + k1 * length_norm)
 
         return bm25_tf
 
-    def bm25(self, doc_id: int, term: str):
+    def bm25(self, doc_id: int, term: str) -> float:
         bm25_tf = self.get_bm25_tf(doc_id, term)
         bm25_idf = self.get_bm25_idf(term)
         return bm25_tf * bm25_idf
 
-    def bm25_search(self, query: str, limit: int = RETRIEVAL_LIMIT):
+    def bm25_search(
+        self, query: str, limit: int = RETRIEVAL_LIMIT
+    ) -> list[BM25Match]:
         tokenized_query = prepare_and_tokenize(query)
-        scores = {}
+        scores: dict[int, float] = {}
         for token in tokenized_query:
             for doc_id in self.index[token]:
                 if doc_id in scores:
@@ -97,9 +105,9 @@ class InvertedIndex:
         sorted_scores = dict(
             sorted(scores.items(), key=lambda item: item[1], reverse=True)
         )
-        matches = []
+        matches: list[BM25Match] = []
         for doc_id, score in sorted_scores.items():
-            matches.append(dict(doc_id=doc_id, bm25_score=score))
+            matches.append({"doc_id": doc_id, "bm25_score": score})
             if len(matches) >= limit:
                 break
         return matches

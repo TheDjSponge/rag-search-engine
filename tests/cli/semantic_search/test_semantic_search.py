@@ -1,19 +1,34 @@
-from typing import List, Dict
 import numpy as np
-from cli.semantic_search.semantic_search import cosine_similarity, SemanticSearch
-import torch
 import pytest
 
+from cli.semantic_search.semantic_search import (
+    SemanticSearch,
+    cosine_similarity,
+)
+from cli.utils.models import MovieEntry
 
-def get_sample_movies() -> List[Dict]:
+
+def get_sample_movies() -> list[MovieEntry]:
     return [
-        {"id": 1, "title": "Cats, cats and dogs", "description": "rule the earth"},
-        {"id": 2, "title": "flat earth confirmed", "description": "in your dreams."},
-        {"id": 3, "title": "bob the builder", "description": "what a dream guy"},
+        {
+            "id": 1,
+            "title": "Cats, cats and dogs",
+            "description": "rule the earth",
+        },
+        {
+            "id": 2,
+            "title": "flat earth confirmed",
+            "description": "in your dreams.",
+        },
+        {
+            "id": 3,
+            "title": "bob the builder",
+            "description": "what a dream guy",
+        },
     ]
 
 
-def test_cosine_similarity():
+def test_cosine_similarity() -> None:
     ## Colinear vectors should have a similarity of 1
     arr1 = np.array([1, 0])
     arr2 = np.array([2, 0])
@@ -44,20 +59,20 @@ def test_cosine_similarity():
     assert cosine_similarity(arr1, arr2) == -1.0
 
 
-def test_generate_embedding():
+def test_generate_embedding() -> None:
     semantic_search = SemanticSearch()
     embedding = semantic_search.generate_embedding("bla")
-    assert type(embedding) == np.ndarray
+    assert type(embedding) is np.ndarray
     assert embedding.shape == (384,)
 
 
-def test_load_or_create_embeddings():
+def test_load_or_create_embeddings() -> None:
     movies = get_sample_movies()
     semantic_search = SemanticSearch()
     semantic_search.load_or_create_embeddings(movies)
 
     ## Checking the embeddings are correctly built
-    assert type(semantic_search.embeddings) == np.ndarray
+    assert type(semantic_search.embeddings) is np.ndarray
     assert semantic_search.embeddings.shape == (3, 384)
 
     ## Checking the document map is correctly built
@@ -80,7 +95,7 @@ def test_load_or_create_embeddings():
     }
 
 
-def test_search():
+def test_search() -> None:
     movies = get_sample_movies()
     semantic_search = SemanticSearch()
     semantic_search.load_or_create_embeddings(movies)

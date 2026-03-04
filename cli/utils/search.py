@@ -1,10 +1,10 @@
-from typing import Dict, List
-from .files import load_stopwords
 from cli.tf_idf.inverted_index import InvertedIndex
+from cli.utils.models import MovieEntry
+
 from .text_processing import prepare_and_tokenize
 
 
-def find_matching_movies(movies: List[Dict], query: str) -> List[str]:
+def find_matching_movies(movies: list[MovieEntry], query: str) -> list[str]:
 
     matched = []
     prepared_query = prepare_and_tokenize(query)
@@ -19,14 +19,14 @@ def find_matching_movies(movies: List[Dict], query: str) -> List[str]:
 
 
 def find_matching_movies_with_index(
-    query: str, movies: List[Dict], invertedIndex: InvertedIndex
-) -> List[str]:
+    query: str, movies: list[MovieEntry], inverted_index: InvertedIndex
+) -> list[str]:
 
     matched_ids = []
     prepared_query = prepare_and_tokenize(query)
 
     for token in prepared_query:
-        matched_ids += invertedIndex.get_document(token)
+        matched_ids += inverted_index.get_document(token)
         if len(matched_ids) >= 5:
             break
 
@@ -37,11 +37,11 @@ def find_matching_movies_with_index(
     return matched
 
 
-def print_matched_movies(matched_list: List[str]) -> None:
+def print_matched_movies(matched_list: list[str]) -> None:
     print("\n--- Words found through direct matching ---\n")
     for movie_title in matched_list:
         print(f"- {movie_title}")
 
 
-def has_token_intersection(tokens_1: List[str], tokens_2: List[str]) -> bool:
+def has_token_intersection(tokens_1: list[str], tokens_2: list[str]) -> bool:
     return len(set(tokens_1).intersection(set(tokens_2))) > 0

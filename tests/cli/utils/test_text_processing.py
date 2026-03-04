@@ -1,12 +1,12 @@
 from cli.utils.text_processing import (
-    remove_stopwords,
     format_string,
-    tokenize,
+    remove_stopwords,
     stem_tokens,
+    tokenize,
 )
 
 
-def test_remove_stopwords():
+def test_remove_stopwords() -> None:
     stopwords_list = ["a", "an"]
 
     query = ["a", "cat", "ate", "an", "apple"]
@@ -17,7 +17,7 @@ def test_remove_stopwords():
     assert filtered_query == expected
 
 
-def test_format_string():
+def test_format_string() -> None:
     query = "This dog's house is amazing, I love it!"
     formatted_query = format_string(query)
 
@@ -26,7 +26,7 @@ def test_format_string():
     assert formatted_query == expected
 
 
-def test_tokenize():
+def test_tokenize() -> None:
     query = " I should be tokenized    "
     tokenized_query = tokenize(query)
 
@@ -35,7 +35,7 @@ def test_tokenize():
     assert tokenized_query == expected
 
 
-def test_stemming():
+def test_stemming() -> None:
     querry = ["cat", "running", "tree", "falls"]
     stemmed_querry = stem_tokens(querry)
 

@@ -1,35 +1,48 @@
-from typing import List, Dict
 import math
+
 from cli.tf_idf.inverted_index import InvertedIndex
+from cli.utils.models import MovieEntry
 
 
-def get_sample_movies() -> List[Dict]:
+def get_sample_movies() -> list[MovieEntry]:
     return [
-        {"id": 1, "title": "Cats, cats and dogs", "description": "rule the earth"},
-        {"id": 2, "title": "flat earth confirmed", "description": "in your dreams."},
-        {"id": 3, "title": "bob the builder", "description": "what a dream guy"},
+        {
+            "id": 1,
+            "title": "Cats, cats and dogs",
+            "description": "rule the earth",
+        },
+        {
+            "id": 2,
+            "title": "flat earth confirmed",
+            "description": "in your dreams.",
+        },
+        {
+            "id": 3,
+            "title": "bob the builder",
+            "description": "what a dream guy",
+        },
     ]
 
 
-def get_inverted_index():
+def get_inverted_index() -> InvertedIndex:
     movies = get_sample_movies()
     inverted_index = InvertedIndex()
     inverted_index.build(movies)
     return inverted_index
 
 
-def idf_formula(total_doc_count, term_match_doc_count):
+def idf_formula(total_doc_count: int, term_match_doc_count: int) -> float:
     return math.log((total_doc_count + 1) / (term_match_doc_count + 1))
 
 
-def test_get_document():
+def test_get_document() -> None:
     inverted_index = get_inverted_index()
     assert inverted_index.get_document("earth") == [1, 2]
     assert inverted_index.get_document("cat") == [1]
     assert inverted_index.get_document("dream") == [2, 3]
 
 
-def test_get_tf():
+def test_get_tf() -> None:
     inverted_index = get_inverted_index()
     tf1 = inverted_index.get_tf(1, "cat")
     expected1 = 2
@@ -44,7 +57,7 @@ def test_get_tf():
     assert tf3 == expected3
 
 
-def test_get_idf():
+def test_get_idf() -> None:
     total_doc_count = 3
     inverted_index = get_inverted_index()
 

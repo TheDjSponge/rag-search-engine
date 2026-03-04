@@ -26,6 +26,12 @@ Then we can simply run the project with.
 uv run cli/keyword_search_cli.py search "furious"
 ```
 
+# CI
+CI is heavily inspired by the modern python code quality setup described by Simone carolini
+in the following [forum post](https://simone-carolini.medium.com/modern-python-code-quality-setup-uv-ruff-and-mypy-8038c6549dcc).
+
+
+
 # Project chapters
 
 ## Chapter 1: Preprocessing.
@@ -141,3 +147,4 @@ Recommended production vector databases options mentionned in this course are th
 - sqlite-vec: Open-source vector similarity search for SQLite
 - LanceDB: Local-first, simple setup, small–medium scale
 - Weaviate: Full-featured, GraphQL API, complex schema
+
