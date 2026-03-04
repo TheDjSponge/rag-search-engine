@@ -4,3 +4,5 @@ BM25_B = 0.75
 RETRIEVAL_LIMIT = 5
 
 CACHE_DIR = "./cache"
+
+EMBEDDING_MODEL = "all-MiniLM-L6-v2"
