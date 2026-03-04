@@ -96,11 +96,11 @@ class SemanticSearch:
         self.embeddings = self.build_embeddings(documents)
         return self.embeddings
 
-    def generate_embedding(self, text: str) -> Tensor:
+    def generate_embedding(self, text: str) -> np.ndarray:
         if len(text.replace(" ", "")) == 0:
             ValueError("The provided text is empty or contains whitespaces only")
         embeddings = self.model.encode(text)
-        return embeddings
+        return np.ndarray(embeddings)
 
     def build_embeddings(self, documents: List[Dict]) -> np.ndarray:
         self.documents = documents
