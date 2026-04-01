@@ -1,3 +1,5 @@
+import math
+import re
 import string
 
 from nltk.stem import PorterStemmer
@@ -36,3 +38,67 @@ def prepare_and_tokenize(text: str) -> list[str]:
     cleaned_text = remove_stopwords(tokenized_text, stopwords_list)
     stemmed_tokens = stem_tokens(cleaned_text)
     return stemmed_tokens
+
+
+def chunk_text(text: str, chunk_size: int = 200) -> list[str]:
+    if text == "":
+        raise ValueError("text to chunk can't be empty")
+
+    splitted_words = text.split(" ")
+    num_chunks = math.ceil(len(splitted_words) // chunk_size)
+    chuncked_text = []
+    for chunk in range(num_chunks):
+        chuncked_text.append(
+            " ".join(
+                splitted_words[chunk * chunk_size : (chunk + 1) * chunk_size]
+            )
+        )
+    remains = " ".join(splitted_words[(num_chunks) * chunk_size :])
+
+    if remains != "":
+        chuncked_text.append(remains)
+
+    return chuncked_text
+
+
+def chunk_text_with_overlap(
+    text: str, chunk_size: int = 200, overlap: int = 0
+) -> list[str]:
+    if text == "":
+        raise ValueError("text to chunk can't be empty")
+
+    splitted_words = text.split(" ")
+    step = chunk_size - overlap
+    ptr = 0
+    chunks = []
+    while ptr <= (len(splitted_words)):
+        chunk = splitted_words[ptr : ptr + chunk_size]
+        chunks.append(" ".join(chunk))
+        if ptr + chunk_size >= len(splitted_words):
+            break
+        ptr += step
+    return chunks
+
+
+def chunk_sentences_semantic(
+    text: str, max_chunk_size: int = 4, overlap: int = 0
+) -> list[str]:
+    text = text.strip(" ")
+    if text == "":
+        return []
+    splitted_words = re.split(r"(?<=[.!?])\s+", text)
+    step = max_chunk_size - overlap
+    ptr = 0
+    chunks = []
+    while ptr <= (len(splitted_words)):
+        chunk = splitted_words[ptr : ptr + max_chunk_size]
+        if chunk == []:
+            break
+
+        for id, sentence in enumerate(chunk):
+            chunk[id] = sentence.strip(" ")
+        chunks.append(" ".join(chunk))
+        if ptr + max_chunk_size >= len(splitted_words):
+            break
+        ptr += step
+    return chunks

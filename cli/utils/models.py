@@ -1,4 +1,18 @@
-from typing import TypedDict
+from typing import Any, TypedDict
+
+
+class ChunkScore(TypedDict):
+    chunk_idx: int
+    movie_idx: int
+    score: float
+
+
+class MovieMatchSemantic(TypedDict):
+    id: int
+    title: str
+    document: str
+    score: float
+    metadata: dict[str, Any]
 
 
 class MovieMatch(TypedDict):
