@@ -118,6 +118,8 @@ https://huggingface.co/spaces/mteb/leaderboard
 
 Advice from coursework:
 ```
+"Cohere" and "Mixedbread" are mentionned as good defaults
+
 General Purpose Models
 
     Use case: Broad semantic understanding across domains
@@ -148,3 +150,46 @@ Recommended production vector databases options mentionned in this course are th
 - LanceDB: Local-first, simple setup, small–medium scale
 - Weaviate: Full-featured, GraphQL API, complex schema
 
+We can run the cli commands of this chapter with:
+
+```bash
+uv run cli/semantic_search_cli.py verify ## Displays some info about the embedding model
+
+uv run cli/semantic_search_cli.py embed_text "example text" # Generates an embedding for the query text provided
+
+uv run cli/semantic_search_cli.py verify_embeddings # Checks if embeddings exist, otherwise creates them
+
+uv run cli/semantic_search_cli.py embedquery "example text" # Generates an embedding for the query text provided
+
+uv run cli/semantic_search_cli.py search "a story about a badly injured anbuselvan" # Search a matching movie in the database
+
+```
+
+## Chapter 5: Chunking
+
+The longer a document text is, the more dilluted the information in its vector embedding is. The idea behind chunking is
+to represent every document (movie) with a set of embeddings that represent chunks of our text. Now you might wonder, how
+are we supposed to make a choice on where we cut these chunks? Well, various methods
+
+1. Chunk every X words: Naive method that might cut sentences in the middle and get lost in the context
+2. Chunk every X words with Y overlap: Can still cut in the middle of a sentence but prevents the loss of previous context
+3. Semantic chunking on punctuation (with overlap): Chunks are delimited by punctuation markers (./?/!) to chunk at the end of sentences.
+
+Chunking a document into several embedding vectors instead of a single one is likely to report better results but at a computational cost. We make more than one vector comparison for each document. 
+We can even push it further and use CoIBERT (each word gets an embedding). 
+The method to use really depends on the accuracy/time constraints and needs to be chosed carefully.
+
+We can run the cli commands of this chapter with:
+```bash
+# Chunks the query text splitting making chunks of [chunk-size] words with optional overlapping
+uv run cli/semantic_search_cli.py chunk "my sentence is so long" --chunk-size 2 --overlap 1
+
+
+uv run cli/semantic_search_cli.py embed_chunks # Generates chunk embeddings for each document
+
+# Performs a semantic chunking on the sentences 
+uv run cli/semantic_search_cli.py semantic_chunk 'a. b. c. d? e!' --max-chunk-size 2 --overlap 1
+
+# Performs a semantic search on chunks and returns the top [limit] matches
+uv run cli/semantic_search_cli.py search_chunked "People in an alternate reality" --limit 3
+```

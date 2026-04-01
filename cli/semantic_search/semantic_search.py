@@ -51,8 +51,8 @@ def cosine_similarity(
 
 
 class SemanticSearch:
-    def __init__(self) -> None:
-        self.model = SentenceTransformer(EMBEDDING_MODEL)
+    def __init__(self, model: str = EMBEDDING_MODEL) -> None:
+        self.model = SentenceTransformer(model)
         self.embeddings: np.ndarray | None = None
         self.documents: list[MovieEntry] | None = None
         self.document_map: dict[int, MovieEntry] = {}
