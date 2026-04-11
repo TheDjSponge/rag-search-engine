@@ -193,3 +193,16 @@ uv run cli/semantic_search_cli.py semantic_chunk 'a. b. c. d? e!' --max-chunk-si
 # Performs a semantic search on chunks and returns the top [limit] matches
 uv run cli/semantic_search_cli.py search_chunked "People in an alternate reality" --limit 3
 ```
+
+## Chapter 6: Hybrid search
+
+It is clear that depending on the context, keyword search might be more efficient than semantic search.
+If a user wants to find a very specific document (movie) by its title, keyword search is more than enough.
+Hybrid search consists in creating a weighted score between keyword and semantic search to retrieve
+the best matches.
+- Known-item search --> Keyword
+- Topic search --> Semantic
+- Exploratory (the user has no idea what they want to find) --> both might be good
+
+Since metrics might work with different score scales, we need to 
+

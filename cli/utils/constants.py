@@ -7,3 +7,5 @@ SCORE_PRECISION = 4
 CACHE_DIR = "./cache"
 
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+
+MOVIES_FILE_PATH = "./data/movies.json"
