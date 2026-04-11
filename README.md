@@ -204,5 +204,22 @@ the best matches.
 - Topic search --> Semantic
 - Exploratory (the user has no idea what they want to find) --> both might be good
 
-Since metrics might work with different score scales, we need to 
+Since metrics might work with different score scales, we need to normalize it. In these exercises, we use 
+min-max normalization to constrain all metrics between 0 and 1.
+
+Then we combine them in a weighted fashion with the following operation:
+
+$$hybrid\_score = \alpha * bm25\_score + (1-\alpha) * semantic\_score$$
+
+Alpha values should lay between 0 and 1, 1 giving all the weight to keyword search and 0 to semantic search.
+(Basically a linear interpolation between semantic and keyword scores)
+
+Another way to mitigate the effect from different metric scales is to use RRF (reciprocal rank fusion).
+The idea is that, instead of comparing elements with metric scores, we define a new score based on the search
+rank for each method. This score is defined as
+
+$$rrf\_score = \frac{1}{k + rank}$$
+
+where rank is the rank of the matched document (movie) and k is a factor that smoothes the scores when increased
+or creates a bigger disparity between ranked element's scores if low.
 

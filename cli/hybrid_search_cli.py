@@ -40,6 +40,21 @@ def main() -> None:
         help="Number of movies to recommend",
     )
 
+    rrf_search_parser = subparsers.add_parser("rrf-search")
+    rrf_search_parser.add_argument("query", type=str, help="Query for search")
+    rrf_search_parser.add_argument(
+        "-k",
+        type=int,
+        default=60,
+        help="A low k gives a better scores to high ranked matches, a high k flattens the scores given by ranks.",
+    )
+    rrf_search_parser.add_argument(
+        "--limit",
+        type=int,
+        default=5,
+        help="Number of movies to recommend",
+    )
+
     args = parser.parse_args()
 
     match args.command:
@@ -49,8 +64,29 @@ def main() -> None:
         case "weighted-search":
             movies = load_movies(MOVIES_FILE_PATH)
             hybrid_search = HybridSearch(movies["movies"])
-            hybrid_search.weighted_search(args.query, args.alpha, args.limit)
-
+            weighted_search_matches = hybrid_search.weighted_search(
+                args.query, args.alpha, args.limit
+            )
+            for id, match in enumerate(weighted_search_matches, start=1):
+                print(f"{id}. {match[1]['title']}")
+                print(f"  Hybrid Score: {match[1]['hybrid_score']}")
+                print(
+                    f"  BM25: {match[1]['keyword_score']}, Semantic: {match[1]['semantic_score']}"
+                )
+                print(f"  {match[1]['description'][:100]}")
+        case "rrf-search":
+            movies = load_movies(MOVIES_FILE_PATH)
+            hybrid_search = HybridSearch(movies["movies"])
+            rrf_search_matches = hybrid_search.rrf_search(
+                args.query, args.k, args.limit
+            )
+            for id, rrf_match in enumerate(rrf_search_matches, start=1):
+                print(f"{id}. {rrf_match[1]['title']}")
+                print(f"  RRF Score: {rrf_match[1]['rrf_score']}")
+                print(
+                    f"  BM25 RANK: {rrf_match[1]['keyword_rank']}, Semantic Rank: {rrf_match[1]['semantic_rank']}"
+                )
+                print(f"  {rrf_match[1]['description'][:100]}")
         case _:
             parser.print_help()
 
