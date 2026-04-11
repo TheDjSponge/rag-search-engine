@@ -1,6 +1,22 @@
 from typing import Any, TypedDict
 
 
+class RRFMatchItem(TypedDict):
+    title: str
+    description: str
+    semantic_rank: int | None
+    keyword_rank: int | None
+    rrf_score: float
+
+
+class HybridMatchItem(TypedDict):
+    title: str
+    description: str
+    semantic_score: float
+    keyword_score: float
+    hybrid_score: float
+
+
 class ChunkScore(TypedDict):
     chunk_idx: int
     movie_idx: int

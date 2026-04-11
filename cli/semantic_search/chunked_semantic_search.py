@@ -115,11 +115,11 @@ class ChunkedSemanticSearch(SemanticSearch):
 
         selected: list[MovieMatchSemantic] = []
         for movie_score in sorted_scores:
-            movie_idx = movie_score[0] - 1
+            movie_idx = movie_score[0] - 1  # List index
 
             selected.append(
                 {
-                    "id": movie_idx,
+                    "id": movie_idx + 1,  # Dataset index
                     "title": self.documents[movie_idx]["title"],
                     "document": self.documents[movie_idx]["description"][:100],
                     "score": round(movie_score[1], SCORE_PRECISION),
