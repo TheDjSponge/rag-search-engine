@@ -4,6 +4,11 @@ from cli.hybrid_search.hybrid_search import HybridSearch
 from cli.hybrid_search.normalisation import normalize
 from cli.utils.constants import MOVIES_FILE_PATH
 from cli.utils.files import load_movies
+from cli.utils.query_enhancement import (
+    expand_query,
+    rewrite_query,
+    spell_checking,
+)
 
 
 def main() -> None:
@@ -54,6 +59,12 @@ def main() -> None:
         default=5,
         help="Number of movies to recommend",
     )
+    rrf_search_parser.add_argument(
+        "--enhance",
+        type=str,
+        choices=["spell", "rewrite", "expand"],
+        help="Query enhancement method",
+    )
 
     args = parser.parse_args()
 
@@ -77,8 +88,18 @@ def main() -> None:
         case "rrf-search":
             movies = load_movies(MOVIES_FILE_PATH)
             hybrid_search = HybridSearch(movies["movies"])
+
+            if args.enhance and "spell" in args.enhance:
+                query = spell_checking(args.query)
+            elif args.enhance and "rewrite" in args.enhance:
+                query = rewrite_query(args.query)
+            elif args.enhance and "expand" in args.enhance:
+                query = expand_query(args.query)
+            else:
+                query = args.query
+
             rrf_search_matches = hybrid_search.rrf_search(
-                args.query, args.k, args.limit
+                query, args.k, args.limit
             )
             for id, rrf_match in enumerate(rrf_search_matches, start=1):
                 print(f"{id}. {rrf_match[1]['title']}")
