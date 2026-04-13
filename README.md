@@ -27,7 +27,7 @@ uv run cli/keyword_search_cli.py search "furious"
 ```
 
 # CI
-CI is heavily inspired by the modern python code quality setup described by Simone carolini
+CI is heavily inspired by the modern python code quality setup described by Simone Carolini
 in the following [forum post](https://simone-carolini.medium.com/modern-python-code-quality-setup-uv-ruff-and-mypy-8038c6549dcc).
 
 
