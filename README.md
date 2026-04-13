@@ -223,3 +223,32 @@ $$rrf\_score = \frac{1}{k + rank}$$
 where rank is the rank of the matched document (movie) and k is a factor that smoothes the scores when increased
 or creates a bigger disparity between ranked element's scores if low.
 
+
+We can run the cli commands of this chapter with:
+```
+# Performs min-max normalisation on the provided floats set
+v run cli/hybrid_search_cli.py normalize 15.2 8.7 6.3 2.1  
+
+uv run cli/hybrid_search_cli.py weighted-search "British Bear" --alpha 0.5 --limit 25    
+
+uv run cli/hybrid_search_cli.py rrf-search "family fighting movie" --limit 25   
+```
+
+## Chapter 7: LLMs
+
+In this chapter, we improve the query side of our rrf search. LLMs, as the generalization powerhouses they are, 
+can enhance user queries by doing several useful operations. The three we implement here are:
+- Spell checking: corrects the user's query
+- Query rewriting: rewrites the user query (if needed) in a context-aware way
+- Query exansion: expands user query with other related keywords in a context-aware way.
+
+For this we make use of google's gemma models!
+
+We can run the cli commands of this chapter with:
+```
+uv run cli/hybrid_search_cli.py rrf-search "famili fightong movie" --limit 25 --enhance spell
+
+uv run cli/hybrid_search_cli.py rrf-search "that bear movie where leo gets attacked" --limit 25 --enhance rewrite
+
+uv run cli/hybrid_search_cli.py rrf-search "grizzly" --limit 25 --enhance expand
+```
