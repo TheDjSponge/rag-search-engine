@@ -1,4 +1,4 @@
-from typing import Any, TypedDict
+from typing import Any, NotRequired, TypedDict
 
 
 class RRFMatchItem(TypedDict):
@@ -7,6 +7,8 @@ class RRFMatchItem(TypedDict):
     semantic_rank: int | None
     keyword_rank: int | None
     rrf_score: float
+    rerank_score: NotRequired[float]
+    cross_encoder_score: NotRequired[float]
 
 
 class HybridMatchItem(TypedDict):
