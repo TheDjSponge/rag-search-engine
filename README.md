@@ -252,3 +252,26 @@ uv run cli/hybrid_search_cli.py rrf-search "that bear movie where leo gets attac
 
 uv run cli/hybrid_search_cli.py rrf-search "grizzly" --limit 25 --enhance expand
 ```
+
+## Chapter 8: Re-ranking
+
+In previous chapters, we implemented a vector search that matches relevant movies based on sythesized data from the movies 
+description corpus. After extracting a good amount of relevant object, it makes sense to enter a second phase where 
+we try to fine-tune our matches by comparing documents fully to make sure we only have quality proposals for the user.
+
+Note that we can't make use of caching here so re-ranking is slow and makes sense only after a pre-filtering step.
+
+In this chapter we focus on three ways to approach this. 
+1. Per-document LLM ranking: We use an LLM to provide a score for each query-movie pair
+2. Batch LLM ranking: We provide the query and all movies to the LLM and ask it to return a ranked list (allows comparison between movies)
+3. Use a cross-encoder that computes a relevance score between the query and the whole document (instead of a synthesized one)
+
+We can run the cli commands of this chapter with:
+```
+uv run cli/hybrid_search_cli.py rrf-search "family movie about bears in the woods" --limit 3 --rerank-method individual
+
+uv run cli/hybrid_search_cli.py rrf-search "family movie about bears in the woods" --limit 3 --rerank-method batch
+
+uv run cli/hybrid_search_cli.py rrf-search "family movie about bears in the woods" --limit 3 --rerank-method cross_encoder
+```
+

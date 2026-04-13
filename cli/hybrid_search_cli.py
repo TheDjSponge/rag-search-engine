@@ -2,13 +2,18 @@ import argparse
 
 from cli.hybrid_search.hybrid_search import HybridSearch
 from cli.hybrid_search.normalisation import normalize
-from cli.utils.constants import MOVIES_FILE_PATH
-from cli.utils.files import load_movies
-from cli.utils.query_enhancement import (
+from cli.llm_shenanigans.query_enhancement import (
     expand_query,
     rewrite_query,
     spell_checking,
 )
+from cli.llm_shenanigans.reranking import (
+    rerank_batch,
+    rerank_movies,
+    rerank_with_cross_encoder,
+)
+from cli.utils.constants import MOVIES_FILE_PATH
+from cli.utils.files import load_movies
 
 
 def main() -> None:
@@ -65,6 +70,12 @@ def main() -> None:
         choices=["spell", "rewrite", "expand"],
         help="Query enhancement method",
     )
+    rrf_search_parser.add_argument(
+        "--rerank-method",
+        type=str,
+        choices=["individual", "batch", "cross_encoder"],
+        help="Reranking method",
+    )
 
     args = parser.parse_args()
 
@@ -72,6 +83,7 @@ def main() -> None:
         case "normalize":
             for score in normalize(args.number_list):
                 print(f"* {score:.4f}")
+
         case "weighted-search":
             movies = load_movies(MOVIES_FILE_PATH)
             hybrid_search = HybridSearch(movies["movies"])
@@ -85,9 +97,15 @@ def main() -> None:
                     f"  BM25: {match[1]['keyword_score']}, Semantic: {match[1]['semantic_score']}"
                 )
                 print(f"  {match[1]['description'][:100]}")
+
         case "rrf-search":
             movies = load_movies(MOVIES_FILE_PATH)
             hybrid_search = HybridSearch(movies["movies"])
+
+            if args.rerank_method in ["individual", "batch", "cross_encoder"]:
+                limit = 5 * args.limit
+            else:
+                limit = args.limit
 
             if args.enhance and "spell" in args.enhance:
                 query = spell_checking(args.query)
@@ -98,16 +116,34 @@ def main() -> None:
             else:
                 query = args.query
 
-            rrf_search_matches = hybrid_search.rrf_search(
-                query, args.k, args.limit
-            )
-            for id, rrf_match in enumerate(rrf_search_matches, start=1):
-                print(f"{id}. {rrf_match[1]['title']}")
-                print(f"  RRF Score: {rrf_match[1]['rrf_score']}")
-                print(
-                    f"  BM25 RANK: {rrf_match[1]['keyword_rank']}, Semantic Rank: {rrf_match[1]['semantic_rank']}"
+            rrf_search_matches = hybrid_search.rrf_search(query, args.k, limit)
+            matched_movies = [match[1] for match in rrf_search_matches]
+            if args.rerank_method == "individual":
+                matched_movies = rerank_movies(
+                    query, matched_movies, limit // 5
                 )
-                print(f"  {rrf_match[1]['description'][:100]}")
+            elif args.rerank_method == "batch":
+                matched_movies = rerank_batch(query, matched_movies, limit // 5)
+            elif args.rerank_method == "cross_encoder":
+                matched_movies = rerank_with_cross_encoder(
+                    query, matched_movies, limit // 5
+                )
+
+            for id, rrf_match in enumerate(matched_movies, start=1):
+                print(f"{id}. {rrf_match['title']}")
+                if "rerank_score" in rrf_match:
+                    print(
+                        f"  Re-Rank Score: {rrf_match['rerank_score']:.3f}/10"
+                    )
+                if "cross_encoder_score" in rrf_match:
+                    print(
+                        f"  Cross Encoder Score: {rrf_match['cross_encoder_score']:.3f}"
+                    )
+                print(f"  RRF Score: {rrf_match['rrf_score']}")
+                print(
+                    f"  BM25 RANK: {rrf_match['keyword_rank']}, Semantic Rank: {rrf_match['semantic_rank']}"
+                )
+                print(f"  {rrf_match['description'][:100]}")
         case _:
             parser.print_help()
 
