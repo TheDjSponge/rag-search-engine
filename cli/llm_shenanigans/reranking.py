@@ -41,6 +41,27 @@ def get_batch_ranking_prompt(query: str, doc_list_str: str) -> str:
             Ranking:"""
 
 
+def get_evaluation_prompt(query: str, formatted_results: str) -> str:
+    return f"""Rate how relevant each result is to this query on a 0-3 scale:
+
+                Query: "{query}"
+
+                Results:
+                {formatted_results}
+
+                Scale:
+                - 3: Highly relevant
+                - 2: Relevant
+                - 1: Marginally relevant
+                - 0: Not relevant
+
+                Do NOT give any numbers other than 0, 1, 2, or 3.
+
+                Return ONLY the scores in the same order you were given the documents. Return a valid JSON list, nothing else. For example:
+
+                [2, 0, 3, 2, 0, 1]"""
+
+
 def rerank_movies(
     query: str, candidate_matches: list[RRFMatchItem], limit: int = 5
 ) -> list[RRFMatchItem]:
@@ -84,7 +105,10 @@ def rerank_batch(
 
 
 def rerank_with_cross_encoder(
-    query: str, candidate_matches: list[RRFMatchItem], limit: int = 5
+    query: str,
+    candidate_matches: list[RRFMatchItem],
+    limit: int = 5,
+    debug: str | None = None,
 ) -> list[RRFMatchItem]:
     pairs = []
     for match in candidate_matches:
@@ -100,4 +124,33 @@ def rerank_with_cross_encoder(
         key=lambda x: x.get("cross_encoder_score", 0.0),
         reverse=True,
     )
+    if debug:
+        found_idx = -1
+        for idx, elem in enumerate(sorted_matches):
+            if debug in elem["title"]:
+                found_idx = idx
+                break
+        print(
+            f"DEBUG[CROSS_ENCODER_RERANKING]: The searched movie {debug} is at position {found_idx}"
+        )
+        print(
+            f"DEBUG[CROSS_ENCODER_RERANKING]: Cross encoder score {sorted_matches[found_idx].get('cross_encoder_score', 'None')}"
+        )
     return sorted_matches[:limit]
+
+
+def evaluate(
+    query: str,
+    candidate_matches: list[RRFMatchItem],
+) -> list[int]:
+    doc_list = ""
+    for match in candidate_matches:
+        doc_list += json.dumps(match)
+    prompt = get_evaluation_prompt(query, doc_list)
+    answer = make_llm_query(prompt)
+    scores_list = json.loads(answer)
+    if type(scores_list) is not list:
+        raise ValueError(
+            "Failed the json parsing of the LLM response in reranking:evaluate"
+        )
+    return scores_list
