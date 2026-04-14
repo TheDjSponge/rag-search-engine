@@ -8,12 +8,14 @@ from cli.llm_shenanigans.query_enhancement import (
     spell_checking,
 )
 from cli.llm_shenanigans.reranking import (
+    evaluate,
     rerank_batch,
     rerank_movies,
     rerank_with_cross_encoder,
 )
 from cli.utils.constants import MOVIES_FILE_PATH
 from cli.utils.files import load_movies
+from cli.utils.models import RRFMatchItem
 
 
 def main() -> None:
@@ -76,6 +78,13 @@ def main() -> None:
         choices=["individual", "batch", "cross_encoder"],
         help="Reranking method",
     )
+    rrf_search_parser.add_argument("--debug", type=str, help="A title to track")
+    rrf_search_parser.add_argument(
+        "--evaluate",
+        action="store_true",
+        default=False,
+        help="A title to track",
+    )
 
     args = parser.parse_args()
 
@@ -99,6 +108,8 @@ def main() -> None:
                 print(f"  {match[1]['description'][:100]}")
 
         case "rrf-search":
+            if args.debug:
+                print(f"Debbuging for movie {args.debug}")
             movies = load_movies(MOVIES_FILE_PATH)
             hybrid_search = HybridSearch(movies["movies"])
 
@@ -116,7 +127,20 @@ def main() -> None:
             else:
                 query = args.query
 
-            rrf_search_matches = hybrid_search.rrf_search(query, args.k, limit)
+            rrf_search_matches = hybrid_search.rrf_search(
+                query, args.k, limit, debug=args.debug
+            )
+            if args.debug:
+                debug_query_position = -1
+                for id, rrf_match_elem in enumerate(rrf_search_matches):
+                    if args.debug in rrf_match_elem[1]["title"]:
+                        debug_query_position = id
+                        break
+
+                print(
+                    f"DEBUG[RRF_SEARCH]: The searched movie {args.debug} is at position {debug_query_position}"
+                )
+
             matched_movies = [match[1] for match in rrf_search_matches]
             if args.rerank_method == "individual":
                 matched_movies = rerank_movies(
@@ -126,7 +150,18 @@ def main() -> None:
                 matched_movies = rerank_batch(query, matched_movies, limit // 5)
             elif args.rerank_method == "cross_encoder":
                 matched_movies = rerank_with_cross_encoder(
-                    query, matched_movies, limit // 5
+                    query, matched_movies, limit // 5, args.debug
+                )
+
+            if args.debug:
+                debug_query_position = -1
+                for id, elem in enumerate(matched_movies):
+                    if args.debug in elem["title"]:
+                        debug_query_position = id
+                        break
+
+                print(
+                    f"DEBUG[Reranking]: The searched movie {args.debug} is at position {debug_query_position}"
                 )
 
             for id, rrf_match in enumerate(matched_movies, start=1):
@@ -144,8 +179,23 @@ def main() -> None:
                     f"  BM25 RANK: {rrf_match['keyword_rank']}, Semantic Rank: {rrf_match['semantic_rank']}"
                 )
                 print(f"  {rrf_match['description'][:100]}")
+
+            if args.evaluate:
+                evals = evaluate(query, matched_movies)
+                format_evaluation(matched_movies, evals)
         case _:
             parser.print_help()
+
+
+def format_evaluation(
+    candidate_movies: list[RRFMatchItem], evaluation_scores: list[int]
+) -> None:
+    print("--------- EVALUATION REPORT ------------")
+    for idx, (movie, score) in enumerate(
+        zip(candidate_movies, evaluation_scores, strict=True)
+    ):
+        print(f"{idx}. {movie['title']}: {score}")
+    print("----------------------------------------")
 
 
 if __name__ == "__main__":

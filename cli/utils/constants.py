@@ -9,3 +9,4 @@ CACHE_DIR = "./cache"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 MOVIES_FILE_PATH = "./data/movies.json"
+GOLDEN_DS_PATH = "./data/golden_dataset.json"

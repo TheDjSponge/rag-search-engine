@@ -275,3 +275,38 @@ uv run cli/hybrid_search_cli.py rrf-search "family movie about bears in the wood
 uv run cli/hybrid_search_cli.py rrf-search "family movie about bears in the woods" --limit 3 --rerank-method cross_encoder
 ```
 
+## Chapter 9: Evaluation
+
+Of course a big part of building a system is also benchmarking it and assessing if it fulfills what we want.
+In our context, we want to make sure that the movies fetched by our search methods actually retrieve meaningful
+results. For this, we have two main approaches.
+
+Qualitative analysis: Which implies manually testing the search and exploring the potential gaps/limits and adressing them
+Quantitative analyis: Which aims to leverage the use of a metric in order to have a quantifiable score for performance comparison
+
+In this chapter, we mostly explore quantitative analysis through well known metrics. 
+
+- $Precision@K = \frac{relevant\_retrieved}{total\_retrieved}$
+- $Recall@K = \frac{relevant\_retrieved}{total\_relevant}$
+- $F1 = \frac{2* precision * recall}{precision + recall}$
+
+Precision measures the quantity of relevant items in the ones we retrieved, Recall measures the number of relevant items we retrieve relative to the 
+total number in dataset, F1 is the harmonic mean of the two which provides a convenient single number for both (which can be weighter if one is more important than the other!).
+
+A last method that is discussed and implemented in this chapter is LLM evaluation. Here the idea is to prompt an 
+LLM to give that score, for this we need to think about the factors the LLM should account for to provide decent results and check it agains expert knowledge!
+The main advantage of using an LLM for this is that it can capture concepts that are more "humanish" and improve processing speed. We can't have an expert
+systematically checking our retrievals.
+
+
+We can run the cli commands of this chapter with:
+```
+## Runs evaluation on the golden dataset
+uv run cli/evaluation_cli.py --limit 10
+
+## Debugging flag to check what happens during the different steps
+uv run cli/hybrid_search_cli.py rrf-search "dinosaur" --rerank-method cross_encoder --limit 5 --debug "Land Before Time XI"
+
+## LLM eval
+uv run cli/hybrid_search_cli.py rrf-search "dinosaur" --rerank-method cross_encoder --limit 10 --evaluate
+```

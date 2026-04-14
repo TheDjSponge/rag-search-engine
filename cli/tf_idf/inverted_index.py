@@ -64,7 +64,7 @@ class InvertedIndex:
         token = tokenized_term[0]
 
         total_docs = len(self.docmap)
-        document_frequency = len(self.index[token])
+        document_frequency = len(self.index.get(token, []))
         return math.log(
             (total_docs - document_frequency + 0.5) / (document_frequency + 0.5)
             + 1
@@ -94,6 +94,7 @@ class InvertedIndex:
         self, query: str, limit: int = RETRIEVAL_LIMIT
     ) -> list[BM25Match]:
         tokenized_query = prepare_and_tokenize(query)
+        # print(f"Tokenized query: {tokenized_query}")
         scores: dict[int, float] = {}
         for token in tokenized_query:
             for doc_id in self.index[token]:

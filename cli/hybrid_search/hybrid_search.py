@@ -89,7 +89,7 @@ class HybridSearch:
         return self.idx.bm25_search(query, limit)
 
     def rrf_search(
-        self, query: str, k: int, limit: int = 10
+        self, query: str, k: int, limit: int = 10, debug: str | None = None
     ) -> list[tuple[int, RRFMatchItem]]:
         bm25_matches = self._bm25_search(
             query, limit=limit * 500
@@ -155,6 +155,19 @@ class HybridSearch:
             key=lambda x: x[1]["rrf_score"],
             reverse=True,
         )
+
+        if debug:
+            found_idx = -1
+            for idx, elem in enumerate(sorted_hybrid_matches):
+                if debug in elem[1]["title"]:
+                    found_idx = idx
+                    break
+            print(
+                f"DEBUG[RRF_SEARCH_NO_LIMIT]: The searched movie {debug} is at position {found_idx}"
+            )
+            print(
+                f"DEBUG[RRF_SEARCH_NO_LIMIT]: BM25 rank: {sorted_hybrid_matches[found_idx][1]['keyword_rank']} | Semantic rank: {sorted_hybrid_matches[found_idx][1]['semantic_rank']}"
+            )
         return sorted_hybrid_matches[:limit]
 
 
